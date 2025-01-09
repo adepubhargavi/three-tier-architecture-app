@@ -58,5 +58,31 @@ Verify that the deployments are running.
 kubectl get deployment -n kube-system aws-load-balancer-controller
 ```
 
+Recently, you might encounter issues like 
 
+```
+aws iam get-policy-version \
+    --policy-arn arn:aws:iam::756179442701:policy/AWSLoadBalancerControllerIAMPolicy \
+    --version-id $(aws iam get-policy --policy-arn arn:aws:iam::756179442701:policy/AWSLoadBalancerControllerIAMPolicy --query 'Policy.DefaultVersionId' --output text) \
+    --query 'PolicyVersion.Document' --output json > policy.json
+```
+
+Edit policy.json to add the missing permissions
+
+```
+{
+  "Effect": "Allow",
+  "Action": "elasticloadbalancing:DescribeListenerAttributes",
+  "Resource": "*"
+}
+
+```
+Apply with the changes
+
+```
+aws iam create-policy-version \
+    --policy-arn arn:aws:iam::756179442701:policy/AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://policy.json \
+    --set-as-default
+```
 
